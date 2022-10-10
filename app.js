@@ -11,11 +11,25 @@ const io = new Server(server, {
 })
 const cors = require('cors')
 
+const rooms = {}
+
+const generateRoomId = () => (+ new Date()) + '-' + parseInt(Math.random() * 999)
+
 app.use(cors())
 
 io.on('connection', socket => {
-    console.log('user connected')
-    io.emit('myId', socket.id)
+  socket.on('createRoom', data => {
+    const roomId = generateRoomId()
+    rooms[roomId] = data
+    socket.emit('roomCreated', {
+      roomId,
+      userType: 'challanger'
+    })
+    io.to(data.opponentId).emit('roomCreated', {
+      roomId,
+      userType: 'challanged'
+    })
+  })
 })
 
 const PORT = 3000
